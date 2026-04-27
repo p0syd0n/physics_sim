@@ -9,8 +9,9 @@ constexpr double G = 10000;
 constexpr int MAX_RADIUS = 20;
 constexpr int MIN_RADIUS = 5;
 
-constexpr int WIDTH = 800;
-constexpr int HEIGHT = 450;
+constexpr float WIDTH = 800;
+constexpr float HEIGHT = 450;
+constexpr bool WRAP = false;
 
 class Ball {
 public:
@@ -71,20 +72,23 @@ public:
         acceleration.x += total_acceleration * cos(angle);
         acceleration.y += total_acceleration * sin(angle);
     }
+    
     void apply_updates() {
         acceleration = raylib::Vector2(0, 0);
-        int w = GetScreenWidth();
-        int h = GetScreenHeight();
 
         position.x = next_position.x;
         position.y = next_position.y;
         velocity.x = next_velocity.x;
         velocity.y = next_velocity.y;
 
-        if (position.x - radius > w)  position.x = -radius;
-        if (position.x + radius < 0)  position.x = w + radius;
-        if (position.y - radius > h)  position.y = -radius;
-        if (position.y + radius < 0)  position.y = h + radius;
+        if constexpr (WRAP) {
+            int w = GetScreenWidth();
+            int h = GetScreenHeight();
+            if (position.x - radius > w)  position.x = -radius;
+            if (position.x + radius < 0)  position.x = w + radius;
+            if (position.y - radius > h)  position.y = -radius;
+            if (position.y + radius < 0)  position.y = h + radius;
+        }
     }
 
     void separate(Ball& other) {
@@ -147,33 +151,38 @@ int main() {
     raylib::Window window(WIDTH, HEIGHT, "Physics Sim");
     window.SetTargetFPS(120);
     window.DrawFPS(50, 50);
+
+
+    std::vector<Ball> balls;
+
+    // auto randomBall = []() {
+    //     float vx = GetRandomValue(-100, 100);
+    //     float vy = GetRandomValue(-100, 100);
+    //     float x  = GetRandomValue(MAX_RADIUS, WIDTH  - MAX_RADIUS);
+    //     float y  = GetRandomValue(MAX_RADIUS, HEIGHT - MAX_RADIUS);
+    //     long  m  = GetRandomValue(100, 500);
+    //     Color c  = { (unsigned char)GetRandomValue(50, 255),
+    //                 (unsigned char)GetRandomValue(50, 255),
+    //                 (unsigned char)GetRandomValue(50, 255), 255 };
+    //     return Ball(raylib::Vector2(vx, vy), raylib::Vector2(x, y), m, c);
+    // };
+
+    // constexpr int NUM_BALLS = 3;
+    // for (int i = 0; i < NUM_BALLS; i++)
+    //     balls.push_back(randomBall());
+
     // Ball ball(raylib::Vector2(0, -50), raylib::Vector2(700, 800), 500, RED);
 
     // Ball ball2(raylib::Vector2(20, 0), raylib::Vector2(550, 550), 400, BLUE);
     // Ball ball3(raylib::Vector2(50, 40), raylib::Vector2(300, 270), 300, GREEN);
-
-    std::vector<Ball> balls;
 
     // balls.push_back(ball);
     // balls.push_back(ball2);
     //  balls.push_back(ball3);
 
 
-    auto randomBall = []() {
-        float vx = GetRandomValue(-100, 100);
-        float vy = GetRandomValue(-100, 100);
-        float x  = GetRandomValue(MAX_RADIUS, WIDTH  - MAX_RADIUS);
-        float y  = GetRandomValue(MAX_RADIUS, HEIGHT - MAX_RADIUS);
-        long  m  = GetRandomValue(100, 500);
-        Color c  = { (unsigned char)GetRandomValue(50, 255),
-                    (unsigned char)GetRandomValue(50, 255),
-                    (unsigned char)GetRandomValue(50, 255), 255 };
-        return Ball(raylib::Vector2(vx, vy), raylib::Vector2(x, y), m, c);
-    };
-
-    constexpr int NUM_BALLS = 3;
-    for (int i = 0; i < NUM_BALLS; i++)
-        balls.push_back(randomBall());
+    balls.push_back(Ball(raylib::Vector2(0, 0),    raylib::Vector2(WIDTH / 2, HEIGHT / 2), 1000, YELLOW));
+    balls.push_back(Ball(raylib::Vector2(0, 200),  raylib::Vector2(WIDTH / 2 + 150, HEIGHT / 2), 50, BLUE));
 
     while (!window.ShouldClose()) {
         BeginDrawing();
